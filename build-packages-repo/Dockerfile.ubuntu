@@ -1,0 +1,64 @@
+FROM ubuntu:bionic as bionic
+ARG OS_VERSION=bionic
+ARG ARCH=amd64
+
+ARG DEP_PACKAGES="apt-transport-https ca-certificates curl gnupg aptitude dpkg-dev"
+RUN apt update -y -q \
+    && apt install -y --no-install-recommends $DEP_PACKAGES \
+    && curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg \
+    && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu ${OS_VERSION} stable" \
+    | tee /etc/apt/sources.list.d/docker.list > /dev/null \
+    && apt update -y -q
+
+WORKDIR /ubuntu/${OS_VERSION}
+
+RUN curl -sL -o /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.9.3/yq_linux_amd64 \
+    && chmod a+x /usr/local/bin/yq \
+    && curl -sL -o /usr/local/bin/jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 \
+    && chmod a+x /usr/local/bin/jq
+
+COPY packages.yaml packages.yaml 
+
+RUN yq eval packages.yaml -j | jq -r '.common[],.apt[],.ubuntu[]' | sort -u > packages.list \
+    && dpkg --get-selections | grep -v deinstall | cut -f1 >> packages.list
+
+RUN chown -R _apt /ubuntu/$OS_VERSION \
+    && cat packages.list | xargs -L1 -I {} apt-cache depends --recurse --no-recommends --no-suggests \
+    --no-conflicts --no-breaks --no-replaces --no-enhances {}  | grep '^\w' | sort -u | xargs apt-get download
+
+RUN cd ../ && dpkg-scanpackages $OS_VERSION | gzip -9c > $OS_VERSION/Packages.gz
+
+FROM ubuntu:focal as focal
+ARG OS_VERSION=focal
+ARG ARCH=amd64
+
+ARG DEP_PACKAGES="apt-transport-https ca-certificates curl gnupg aptitude dpkg-dev"
+RUN apt update -y -q \
+    && apt install -y --no-install-recommends $DEP_PACKAGES \
+    && curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg \
+    && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu ${OS_VERSION} stable" \
+    | tee /etc/apt/sources.list.d/docker.list > /dev/null \
+    && apt update -y -q
+
+WORKDIR /ubuntu/${OS_VERSION}
+
+RUN curl -sL -o /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.9.3/yq_linux_amd64 \
+    && chmod a+x /usr/local/bin/yq \
+    && curl -sL -o /usr/local/bin/jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 \
+    && chmod a+x /usr/local/bin/jq
+
+COPY packages.yaml packages.yaml 
+
+RUN yq eval packages.yaml -j | jq -r '.common[],.apt[],.ubuntu[]' | sort -u > packages.list \
+    && dpkg --get-selections | grep -v deinstall | cut -f1 >> packages.list
+
+RUN chown -R _apt /ubuntu/$OS_VERSION \
+    && cat packages.list | xargs -L1 -I {} apt-cache depends --recurse --no-recommends --no-suggests \
+    --no-conflicts --no-breaks --no-replaces --no-enhances {}  | grep '^\w' | sort -u | xargs apt-get download
+
+RUN cd ../ && dpkg-scanpackages $OS_VERSION | gzip -9c > $OS_VERSION/Packages.gz
+
+FROM scratch
+
+COPY --from=bionic /ubuntu /ubuntu
+COPY --from=focal /ubuntu /ubuntu

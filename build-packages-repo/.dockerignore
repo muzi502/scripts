@@ -1,0 +1,9 @@
+build/
+debian/
+centos/
+ubuntu/
+packages/
+*.txt
+*.tar
+*.list
+*.tar.gz

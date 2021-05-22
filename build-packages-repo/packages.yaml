@@ -1,0 +1,63 @@
+---
+common:
+  - ansible
+  - vim
+  - tmux
+  - htop
+  - ncdu
+  - tcpdump
+  - nload
+  - sshpass
+  - rsync
+  - curl
+  - wget
+  - tree
+  - glusterfs-client
+  - glusterfs-server
+  - lvm2
+  - ceph-common
+  - jq
+  - ipvsadm
+  - ipset
+  - socat
+  - unzip
+  - e2fsprogs
+  - xfsprogs
+  - ebtables
+  - bash-completion
+  - openssl
+
+yum:
+  - nfs-utils
+  - yum-utils
+  - createrepo
+  - centos-release-gluster
+  - epel-release
+  - glusterfs
+  - glusterfs-cli
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+
+apt:
+  - nfs-common
+  - apt-transport-https
+  - ca-certificates
+  - gnupg
+  - lsb-release
+  - software-properties-common
+  - aptitude
+  - dpkg-dev
+  - gnupg2
+  - glusterfs-server
+  - docker-ce
+  - docker-ce-cli
+
+centos:
+  - nfs-utils
+
+debian:
+  - nfs-common
+
+ubuntu:
+  - nfs-common
