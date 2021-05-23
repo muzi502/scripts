@@ -26,30 +26,15 @@
 ```yaml
 ---
 common:
-  - ansible
   - vim
-  - tmux
-  - htop
-  - ncdu
   - tcpdump
-  - nload
   - sshpass
   - rsync
   - curl
   - wget
   - tree
-  - glusterfs-client
-  - glusterfs-server
-  - lvm2
-  - ceph-common
-  - jq
-  - ipvsadm
-  - ipset
   - socat
   - unzip
-  - e2fsprogs
-  - xfsprogs
-  - ebtables
   - bash-completion
   - openssl
 
@@ -57,13 +42,9 @@ yum:
   - nfs-utils
   - yum-utils
   - createrepo
-  - centos-release-gluster
   - epel-release
-  - glusterfs
-  - glusterfs-cli
-  - docker-ce
-  - docker-ce-cli
   - containerd.io
+  - centos-release-gluster
 
 apt:
   - nfs-common
@@ -75,18 +56,21 @@ apt:
   - aptitude
   - dpkg-dev
   - gnupg2
-  - glusterfs-server
-  - docker-ce
-  - docker-ce-cli
 
 centos:
-  - nfs-utils
+  - centos-release
 
 debian:
-  - nfs-common
+  - debian-builder
 
 ubuntu:
-  - nfs-common
+  - ubuntu-dev-tools
+
+debian-buster:
+  - docker-ce=5:19.03.15~3-0~debian-stretch
+
+ubuntu-focal:
+  - docker-ce=5:19.03.15~3-0~ubuntu-focal
 ```
 
 - common
@@ -102,6 +86,8 @@ ubuntu:
 - ubuntu
 
 - debian-buster
+
+Some package's name
 
 - ubuntu-bionic
 
