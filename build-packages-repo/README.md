@@ -67,7 +67,7 @@ ubuntu:
   - ubuntu-dev-tools
 
 debian-buster:
-  - docker-ce=5:19.03.15~3-0~debian-stretch
+  - docker-ce=5:19.03.15~3-0~debian-buster
 
 ubuntu-focal:
   - docker-ce=5:19.03.15~3-0~ubuntu-focal
