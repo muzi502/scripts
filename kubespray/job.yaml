@@ -1,0 +1,119 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kubespray-create-cluster
+spec:
+  template:
+    metadata:
+      labels:
+        app: kubespray-job
+        job-name: create-cluster
+    spec:
+      containers:
+      - name: kubespray
+        image: kubespray:v2.16.0
+        imagePullPolicy: Always
+        command:
+        - /bin/bash
+        - /kubespray/run.sh
+        - create-cluster
+        volumeMounts:
+        - name: inventory
+          readOnly: true
+          mountPath: /kubespray/configs/inventory
+          subPath: inventory
+        - name: env
+          readOnly: true
+          mountPath: /kubespray/configs/env.yml
+          subPath: env.yml
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 1000m
+            memory: 1000Mi
+      volumes:
+      - name: inventory
+        secret:
+          secretName: inventory
+          defaultMode: 420
+          items:
+          - key: inventory
+            path: inventory
+      - name: env
+        configMap:
+          name: env
+          defaultMode: 420
+          items:
+          - key: env.yml
+            path: env.yml
+      restartPolicy: Never
+      serviceAccountName: default
+  parallelism: 1
+  completions: 1
+  backoffLimit: 0
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: env
+data:
+  env.yml: |
+    cluster_identity_name: kubernetes
+    kube_version: v1.20.6
+    cluster_vip: 172.19.39.150
+    keepalived_enabled: true
+    kube_network_plugin: calico
+    offline_resources_url: 172.19.1.2
+    registry_ip: 172.19.35.150
+    registry_domain: hub.k8s.li
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: inventory
+data:
+  inventory: |
+    [all:vars]
+    ansible_port=22
+    ansible_user=root
+    ansible_ssh_pass=
+    #ansible_ssh_private_key_file=/kubespray/configs/ssh_cert/id_rsa
+
+    [bastion]
+    # bastion ansible_host=x.x.x.x ansible_user=some_user
+
+    [all]
+    kube-control-1 ansible_host=172.19.35.151
+    kube-control-2 ansible_host=172.19.35.152
+    kube-control-3 ansible_host=172.19.35.153
+    kube-node-1 ansible_host=172.19.35.154
+    kube-node-2 ansible_host=172.19.35.156
+
+    [kube_control_plane]
+    kube-control-1
+    kube-control-2
+    kube-control-3
+
+    [etcd]
+    kube-control-1
+    kube-control-2
+    kube-control-3
+
+    [kube_node]
+    kube-control-1
+    kube-control-2
+    kube-control-3
+    kube-node-1
+    kube-node-2
+
+    [calico_rr]
+
+    [k8s_cluster:children]
+    kube_control_plane
+    kube_node
+    calico_rr
+
